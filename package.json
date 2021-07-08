@@ -1,7 +1,7 @@
 {
   "name": "baechli",
   "version": "0.1.5",
-  "description": "A command-line tool that watches a folder's structure and, on files' changes, run provided commands.",
+  "description": "A command-line tool that watches a folder's structure and, on files' changes, runs provided commands.",
   "main": "app.js",
   "bin": {
     "baechli": "./dist/app.js"
@@ -49,10 +49,13 @@
     "@typescript-eslint/parser": "^4.19.0",
     "eslint": "^7.22.0",
     "eslint-config-google": "^0.14.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-prettier": "^3.4.0",
     "trash": "^7.1.1",
     "typescript": "^4.2.3"
   },
   "dependencies": {
+    "@types/sleep": "^0.0.8",
     "chalk": "^4.1.0",
     "chokidar": "^3.5.1",
     "commander": "^7.2.0",

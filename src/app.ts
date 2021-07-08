@@ -1,14 +1,13 @@
 #!/usr/bin/env node
 
 // Import relevant modules.
-const {once} = require('events');
-const process = require('process');
-const {spawn} = require('child_process');
-import {Command, OptionValues} from 'commander';
-const chalk = require('chalk');
-const ora = require('ora');
-const chokidar = require('chokidar');
-const sleep = require('sleep');
+import chalk from 'chalk';
+import {spawn} from 'child_process';
+import chokidar from 'chokidar';
+import {Command} from 'commander';
+import {once} from 'events';
+import ora from 'ora';
+import sleep from 'sleep';
 
 /**
  * Process and execute the specified commands.
@@ -35,11 +34,13 @@ async function processAndExecute(options: OptionValues) {
     childProcess.on('error', () => {
       infoSpinner.stop();
       console.log(chalk.red('Error executing the command "' + command + '"'));
-      console.log(chalk.yellow('Hint: ') +
-        'The command could not be executed on your terminal. ' +
-        'It may be the case that the command was typed incorrectly. ' +
-        'Please run if possible the command on its own on your terminal ' +
-        'to further investigate the problem.');
+      console.log(
+        chalk.yellow('Hint: ') +
+          'The command could not be executed on your terminal. ' +
+          'It may be the case that the command was typed incorrectly. ' +
+          'Please run if possible the command on its own on your terminal ' +
+          'to further investigate the problem.'
+      );
       iterationError = true;
     });
     // Evaluate the result of the execution.
@@ -64,9 +65,8 @@ async function processAndExecute(options: OptionValues) {
     if (iterationError) {
       break;
     }
-  };
+  }
 }
-
 
 /** Main function */
 function run() {
@@ -74,11 +74,15 @@ function run() {
   const program = new Command();
   // Specify the current version.
   program.version('0.1.5');
+  // Specify the configuration for the "path" flag.
+  program.option('-p, --path <file|dir|glob|array>', 'Path(s) to watch', '.');
   // Specify the configuration for the "commands" flag.
   program.requiredOption('-c, --commands <cmd...>', 'Commands to run');
   // Parse the command line arguments.
   program.parse(process.argv);
   const options = program.opts();
+  console.log(options);
+  if (!options.path) options.path = '.';
   // Watch files and process and execute
   // each command on change.
   const waitSpinner = ora('Waiting for changes...');
@@ -87,25 +91,26 @@ function run() {
     interval: 1000,
     frames: ['●', '○'],
   };
-  const watcher = chokidar.watch('.');
+  const watcher = chokidar.watch(options.path);
   console.clear();
   waitSpinner.start();
   watcher.on('change', () => {
     waitSpinner.stop();
     console.clear();
-    const unwatchPromise = watcher.unwatch('.');
+    const unwatchPromise = watcher.unwatch(options.path);
     const processAndExecutePromise = processAndExecute(options);
-    Promise.all([unwatchPromise, processAndExecutePromise]).then(() => {
-      waitSpinner.color = 'yellow';
-      waitSpinner.start('Please wait...\n');
-      sleep.sleep(4);
-      watcher.add('.');
-      waitSpinner.color = 'green';
-      waitSpinner.text = 'Waiting for changes...';
-    });
+    Promise.all([unwatchPromise, processAndExecutePromise])
+      .then(() => {
+        waitSpinner.color = 'yellow';
+        waitSpinner.start('Please wait...\n');
+        sleep.sleep(4);
+        watcher.add(options.path || '.');
+        waitSpinner.color = 'green';
+        waitSpinner.text = 'Waiting for changes...';
+      })
+      .catch((error) => console.error(chalk.red(error)));
   });
 }
-
 
 // Run the main program.
 run();
